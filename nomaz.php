@@ -51,10 +51,29 @@ add_action('views_edit-estate_developer', 'buton_top_developers');
 function buton_top_developers($id) {
     
     echo '<form action="'.  admin_url('admin-post.php') . '" method="post">
-   <input type="hidden" name="action" value="sincronizeaza_proprietati">
+   <input type="hidden" name="action" value="update_complexe">
    <input type="submit" value="Sincronizeaza" class="page-title-action">
 </form>';
 }
+
+// Functia prin care actualizam tot
+add_action('views_edit-estate_property', 'buton_top_all');
+function buton_top_all($id) {
+    
+    echo '<form action="'.  admin_url('admin-post.php') . '" method="post">
+   <input type="hidden" name="action" value="sincronizare_totala">
+   <input type="submit" value="Sincronizeaza complet" class="page-title-action">
+</form>';
+}
+
+
+// Sincronizeaza tot
+function sincronizare_totala() {
+	update_complexe();
+	sincronizeaza_proprietati();
+}
+add_action( 'admin_post_sincronizare_totala', 'sincronizare_totala' );
+
 
 // Sincronizare Proprietati
 function sincronizeaza_proprietati() {
@@ -493,7 +512,7 @@ function adaugare_imagini($proprietate, $post_id, $update){
 
 function update_complexe(){
     $KEY = "c218ce8fb0266e9744c367898ab15a9ff3670066";
-    $request_link = 'https://nomaz.crmrebs.com/api/public/residentialcomplex/?api_key='.$KEY;
+    $request_link = 'https://nomaz.crmrebs.com/api/public/residentialcomplex/?api_key=' . $KEY;
 
     $ch = curl_init();
     curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
@@ -525,8 +544,13 @@ function update_complexe(){
             adauga_complex($complex);
         }
     }
+	
+	    wp_redirect( 'https://nomaz.ro/wp-admin/edit.php?post_type=estate_developer' );
+
     
 }
+add_action( 'admin_post_update_complexe', 'update_complexe' );
+
 
 function adauga_complex($complex){
     $titlu = $complex["name"];
@@ -547,72 +571,16 @@ function adauga_complex($complex){
         
         if ($post_id) {
             // insert post meta
-            // add_post_meta($post_id, 'property_price', $pret);
-            // $agenti22 = [];
-            // $agenti22[] = "21993";
-            // $agenti22[] = "22284";
-            // add_post_meta($post_id, 'property_agent_secondary', $agenti22); 
-            add_post_meta($post_id, 'user_meda_id', $id_complex);
+            add_post_meta($post_id, 'developer_license', $id_complex);
             add_post_meta($post_id, 'developer_latitude', $latitudine);
             add_post_meta($post_id, 'developer_longitude', $longitudine);
-            // add_post_meta($post_id, 'id-proprietate-crm', $id_proprietate);
-            // if($tip == "54"){
-            //     add_post_meta($post_id, 'property_label', "/lună");
-            // }
     
             // Imagine featured
             Generate_Featured_Image( $imagine_principala , $post_id );
             
-            // Taxonomies
-            // wp_set_post_terms($post_id, array($categorii) , 'property_category');
-            
-            // wp_set_post_terms($post_id, array($tip) , 'property_action_category');
-    
-            // wp_set_post_terms($post_id, array($oras) , 'property_city');
-    
-            // wp_set_post_terms($post_id, $caracteristici , 'property_features');
-            
-            // foreach($proprietate["resized_images"] as $key=>$img){
-            //     if($key == 0){
-            //         continue;
-            //     }
-            //     $image_url = $img;
-        
-            //     $upload_dir = wp_upload_dir();
-                
-            //     $image_data = file_get_contents( $image_url );
-                
-            //     $filename = basename( $image_url );
-                
-            //     if ( wp_mkdir_p( $upload_dir['path'] ) ) {
-            //       $file = $upload_dir['path'] . '/' . $filename;
-            //     }
-            //     else {
-            //       $file = $upload_dir['basedir'] . '/' . $filename;
-            //     }
-                
-            //     file_put_contents( $file, $image_data );
-            //     $wp_filetype = wp_check_filetype( $filename, null );
-        
-            //     $attachment = array(
-            //       'post_mime_type' => $wp_filetype['type'],
-            //       'post_title' => sanitize_file_name( $filename ),
-            //       'post_content' => '',
-            //       'post_status' => 'inherit'
-            //     );
-                
-                
-                
-            //     $attach_id = wp_insert_attachment( $attachment, $file, $post_id);
-            //     add_post_meta($post_id, 'id-proprietate-crm', $id_proprietate);
-            //     add_post_meta($attach_id, 'url-imagine', $img);
-            //     require_once( ABSPATH . 'wp-admin/includes/image.php' );
-            //     $attach_data = wp_generate_attachment_metadata( $attach_id, $file );
-            //     wp_update_attachment_metadata( $attach_id, $attach_data );
-            // }
-    
         }
 }
+
 function update_complex($post, $complex){
     $titlu = $complex["name"];
     $descriere = $complex["description"];
